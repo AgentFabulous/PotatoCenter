@@ -80,11 +80,3 @@ class _CrossFadeControlledState extends State<CrossFadeControlled> {
     );
   }
 }
-
-Future<void> popupMenuBuilder(BuildContext context, Widget child,
-    {bool dismiss = false}) async {
-  return showDialog(
-      context: context,
-      barrierDismissible: dismiss,
-      builder: (BuildContext context) => child);
-}

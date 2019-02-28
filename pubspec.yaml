@@ -11,6 +11,10 @@ dependencies:
   cupertino_icons: ^0.1.2
   page_transition: any
   flutter_svg: any
+  android_flutter_updater:
+    path: ./plugin
+  simple_permissions: any
+  http: any
 
 dev_dependencies:
   flutter_test:
