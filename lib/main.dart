@@ -135,6 +135,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int currentValue = 0;
+  bool roundBoi = false;
   List<String> intervals = [
     'Never',
     'Once a day',
@@ -198,22 +199,25 @@ class _MyAppState extends State<MyApp> {
             Positioned(
               top: 75.0,
               left: 20.0,
-              child: new AnimatedOpacity(
-                duration: Duration(milliseconds: 300),
-                opacity: (strToBool(AppData().nativeData['update_available']))
-                    ? 1.0
-                    : 0.05,
-                child: new ClipPath(
-                    child: Text(
-                        strToBool(AppData().nativeData['update_available'])
-                            ? "Update\navailable!"
-                            : "Up to date.",
-                        style: TextStyle(
-                            fontSize: AppData().scaleFactorH * 70.0,
-                            color: strToBool(
-                                    AppData().nativeData['update_available'])
-                                ? Theme.of(context).accentColor
-                                : Theme.of(context).textTheme.title.color))),
+              child: GestureDetector(
+                onLongPress: () => setState(() => roundBoi = !roundBoi),
+                child: new AnimatedOpacity(
+                  duration: Duration(milliseconds: 300),
+                  opacity: (strToBool(AppData().nativeData['update_available']))
+                      ? 1.0
+                      : 0.05,
+                  child: new ClipPath(
+                      child: Text(
+                          strToBool(AppData().nativeData['update_available'])
+                              ? "Update\navailable!"
+                              : "Up to date.",
+                          style: TextStyle(
+                              fontSize: AppData().scaleFactorH * 70.0,
+                              color: strToBool(
+                                      AppData().nativeData['update_available'])
+                                  ? Theme.of(context).accentColor
+                                  : Theme.of(context).textTheme.title.color))),
+                ),
               ),
             ),
             Positioned(
@@ -240,7 +244,8 @@ class _MyAppState extends State<MyApp> {
               child: Align(
                 alignment: Alignment.center,
                 child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(), child: BodyCards()),
+                    behavior: NoGlowScrollBehavior(),
+                    child: BodyCards(roundBoi: roundBoi)),
               ),
             )
           ],
@@ -249,6 +254,10 @@ class _MyAppState extends State<MyApp> {
 }
 
 class BodyCards extends StatefulWidget {
+  final bool roundBoi;
+
+  BodyCards({this.roundBoi = false});
+
   @override
   _BodyCardsState createState() => _BodyCardsState();
 }
@@ -414,16 +423,19 @@ class _BodyCardsState extends State<BodyCards> {
                                                                 .nativeData[
                                                                     'percentage']
                                                                 .toString())),
-                                                    negativeColor: HSLColor
-                                                            .fromColor(Theme.of(
-                                                                    _context)
-                                                                .accentColor)
-                                                        .withLightness(0.6)
-                                                        .toColor(),
                                                     positiveColor:
+                                                        Color.fromRGBO(
+                                                            AppData
+                                                                .appColor.red,
+                                                            AppData
+                                                                .appColor.green,
+                                                            AppData
+                                                                .appColor.blue,
+                                                            0.9),
+                                                    negativeColor:
                                                         Theme.of(_context)
-                                                            .cardColor,
-                                                    roundBoi: true,
+                                                            .backgroundColor,
+                                                    roundBoi: widget.roundBoi,
                                                     thickness: 20.0,
                                                     autoPad: true,
                                                   ),
