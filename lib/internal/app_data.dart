@@ -17,6 +17,7 @@ class AppData {
   Map<Key, Function> setStateCallbacks = new Map();
   ThemeData appTheme = ThemeData(
       brightness: Brightness.dark,
+      toggleableActiveColor: appColor,
       accentColor: appColor,
       primarySwatch: MaterialColor(AppData.appColor.value, {
         50: HSLColor.fromColor(AppData.appColor).withLightness(0.1).toColor(),

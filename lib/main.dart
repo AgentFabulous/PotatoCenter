@@ -294,8 +294,8 @@ class _BodyCardsState extends State<BodyCards> {
                             builder: (context, snapshot) =>
                                 Text("v${snapshot.data}")),
                         FutureBuilder(
-                            future: AndroidFlutterUpdater.getProp(
-                                "persist.potato.dish"),
+                            future:
+                                AndroidFlutterUpdater.getProp("ro.potato.dish"),
                             builder: (context, snapshot) =>
                                 Text(" - ${snapshot.data}")),
                       ],
