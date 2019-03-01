@@ -169,9 +169,9 @@ class _MyAppState extends State<MyApp> {
                   AndroidFlutterUpdater.getDownloads()
                       .then((v) => setState(() => AppData().updateIds = v)));
               Scaffold.of(context).showSnackBar(
-                  SnackBar(content: Text("Checking for updates...")));
+                  SnackBar(content: Text("Checking for updates")));
             },
-            child: Icon(Icons.refresh),
+            child: Icon(Icons.refresh, color: Colors.black),
           );
         }),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
