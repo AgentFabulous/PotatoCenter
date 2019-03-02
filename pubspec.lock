@@ -4,9 +4,11 @@ packages:
   android_flutter_updater:
     dependency: "direct main"
     description:
-      path: plugin
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "968c0629433a1fa867c1b7e3947ff0dcce01d667"
+      url: "git://github.com/AgentFabulous/android_flutter_updater"
+    source: git
     version: "0.0.1"
   async:
     dependency: transitive

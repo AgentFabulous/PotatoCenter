@@ -12,7 +12,8 @@ dependencies:
   page_transition: any
   flutter_svg: any
   android_flutter_updater:
-    path: ./plugin
+    git:
+      url: git://github.com/AgentFabulous/android_flutter_updater
   simple_permissions: any
   http: any
 
