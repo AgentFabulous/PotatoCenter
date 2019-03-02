@@ -1,6 +1,5 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
-import 'package:potato_center/internal/methods.dart';
 
 class BottomSheetContents extends StatefulWidget {
   @override
@@ -48,11 +47,13 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
           children: <Widget>[
             Text("Mobile data warning"),
             FutureBuilder(
+              initialData: true,
               future: AndroidFlutterUpdater.getWarn(),
               builder: (context, snapshot) {
                 return Switch(
-                    value: strToBool(snapshot.data.toString()),
-                    onChanged: (b) => AndroidFlutterUpdater.setWarn(b));
+                    value: snapshot.data,
+                    onChanged: (b) => AndroidFlutterUpdater.setWarn(b)
+                        .then((v) => setState(() {})));
               },
             ),
           ],
@@ -62,14 +63,39 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
           children: <Widget>[
             Text("Delete updates when installed"),
             FutureBuilder(
+              initialData: false,
               future: AndroidFlutterUpdater.getAutoDelete(),
               builder: (context, snapshot) {
                 return Switch(
-                    value: strToBool(snapshot.data.toString()),
-                    onChanged: (b) => AndroidFlutterUpdater.setAutoDelete(b));
+                    value: snapshot.data,
+                    onChanged: (b) => AndroidFlutterUpdater.setAutoDelete(b)
+                        .then((v) => setState(() {})));
               },
             ),
           ],
+        ),
+        FutureBuilder(
+          initialData: false,
+          future: AndroidFlutterUpdater.isABDevice(),
+          builder: (context, snapshot) => snapshot.data
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text("Install updates faster"),
+                    FutureBuilder(
+                      initialData: false,
+                      future: AndroidFlutterUpdater.getPerformanceMode(),
+                      builder: (context, snapshot) {
+                        return Switch(
+                            value: snapshot.data,
+                            onChanged: (b) =>
+                                AndroidFlutterUpdater.setPerformanceMode(b)
+                                    .then((v) => setState(() {})));
+                      },
+                    ),
+                  ],
+                )
+              : Container(),
         )
       ]),
     );
