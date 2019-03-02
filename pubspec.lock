@@ -6,7 +6,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "968c0629433a1fa867c1b7e3947ff0dcce01d667"
+      resolved-ref: "2e9af3c49a1634f0e664b38f0a745cb24b57da11"
       url: "git://github.com/AgentFabulous/android_flutter_updater"
     source: git
     version: "0.0.1"
@@ -38,6 +38,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.14.11"
+  convert:
+    dependency: transitive
+    description:
+      name: convert
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -56,7 +63,7 @@ packages:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.4"
+    version: "0.11.0+1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -96,7 +103,7 @@ packages:
       name: page_transition
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.8"
+    version: "1.0.9"
   path:
     dependency: transitive
     description:
@@ -213,7 +220,7 @@ packages:
       name: xml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.5"
+    version: "3.3.1"
 sdks:
   dart: ">=2.1.0 <3.0.0"
   flutter: ">=0.7.3 <2.0.0"
