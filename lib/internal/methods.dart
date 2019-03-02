@@ -1,6 +1,6 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_data.dart';
 
@@ -55,12 +55,9 @@ int totalCompletedInMb() {
       .toInt();
 }
 
-Future<String> getChangelogData() async {
-  final response =
-      await http.get(await AndroidFlutterUpdater.getChangelogUrl());
-  if (response.statusCode == 200) {
-    return response.body;
-  } else {
-    return 'Failed to load changelog';
-  }
+void launchUrl(String url) async {
+  if (await canLaunch(url))
+    await launch(url);
+  else
+    throw 'Could not launch $url!';
 }

@@ -496,31 +496,6 @@ class _ControlsRowState extends State<ControlsRow> {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        IconButton(
-          onPressed: () => popupMenuBuilder(
-                context,
-                Theme(
-                  data: AppData().appTheme,
-                  child: AlertDialog(
-                    title: Text("Changelog"),
-                    content: FutureBuilder(
-                        initialData: "Loading...",
-                        future: getChangelogData(),
-                        builder: (context, snapshot) => SingleChildScrollView(
-                              child: Text(snapshot.data),
-                            )),
-                    actions: <Widget>[
-                      FlatButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text("OK"),
-                      )
-                    ],
-                  ),
-                ),
-                dismiss: true,
-              ),
-          icon: Icon(Icons.code),
-        ),
         !statusEnumCheck(UpdateStatus.UNKNOWN) &&
                 !statusEnumCheck(UpdateStatus.DELETED) &&
                 !statusEnumCheck(UpdateStatus.PAUSED_ERROR)

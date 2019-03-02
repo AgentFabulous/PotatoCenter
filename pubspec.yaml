@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^0.1.2
+  url_launcher: any
   page_transition: any
   flutter_svg: any
   android_flutter_updater:
@@ -16,6 +16,8 @@ dependencies:
       url: git://github.com/AgentFabulous/android_flutter_updater
   simple_permissions: any
   http: any
+  material_design_icons_flutter: 3.1.3493
+
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,7 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
-import 'package:potato_center/internal/app_data.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:potato_center/internal/methods.dart';
 
 class BottomSheetContents extends StatefulWidget {
   @override
@@ -18,14 +19,13 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(10.0 * AppData().scaleFactorA),
-      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text("Update check interval"),
-            FutureBuilder(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Column(children: <Widget>[
+          ListTile(
+            leading: Text("Update check interval"),
+            trailing: FutureBuilder(
               initialData: 2,
               future: AndroidFlutterUpdater.getUpdateCheckSetting(),
               builder: (context, snapshot) => DropdownButton(
@@ -41,13 +41,10 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
                             .then((v) => setState(() {})),
                   ),
             ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text("Mobile data warning"),
-            FutureBuilder(
+          ),
+          ListTile(
+            leading: Text("Mobile data warning"),
+            trailing: FutureBuilder(
               initialData: true,
               future: AndroidFlutterUpdater.getWarn(),
               builder: (context, snapshot) {
@@ -57,13 +54,10 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
                         .then((v) => setState(() {})));
               },
             ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text("Delete updates when installed"),
-            FutureBuilder(
+          ),
+          ListTile(
+            leading: Text("Delete updates when installed"),
+            trailing: FutureBuilder(
               initialData: false,
               future: AndroidFlutterUpdater.getAutoDelete(),
               builder: (context, snapshot) {
@@ -73,17 +67,14 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
                         .then((v) => setState(() {})));
               },
             ),
-          ],
-        ),
-        FutureBuilder(
-          initialData: false,
-          future: AndroidFlutterUpdater.isABDevice(),
-          builder: (context, snapshot) => snapshot.data
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text("Install updates faster"),
-                    FutureBuilder(
+          ),
+          FutureBuilder(
+            initialData: false,
+            future: AndroidFlutterUpdater.isABDevice(),
+            builder: (context, snapshot) => snapshot.data
+                ? ListTile(
+                    leading: Text("Install updates faster"),
+                    trailing: FutureBuilder(
                       initialData: false,
                       future: AndroidFlutterUpdater.getPerformanceMode(),
                       builder: (context, snapshot) {
@@ -94,11 +85,32 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
                                     .then((v) => setState(() {})));
                       },
                     ),
-                  ],
-                )
-              : Container(),
+                  )
+                : Container(),
+          ),
+        ]),
+        Divider(),
+        ListTile(
+          onTap: () => launchUrl("https://potatoproject.co/changelog"),
+          leading: Text("Changelog"),
+          trailing: Icon(Icons.code),
+        ),
+        ListTile(
+          onTap: () => launchUrl("https://potatoproject.co"),
+          leading: Text("Website"),
+          trailing: Icon(Icons.public),
+        ),
+        ListTile(
+          onTap: () => launchUrl("https://twitter.com/PotatoAndroid"),
+          leading: Text("Twitter"),
+          trailing: Icon(MdiIcons.twitter),
+        ),
+        ListTile(
+          onTap: () => launchUrl("https://t.me/SaucyPotatoesOfficial"),
+          leading: Text("Telegram"),
+          trailing: Icon(MdiIcons.telegram),
         )
-      ]),
+      ],
     );
   }
 }
