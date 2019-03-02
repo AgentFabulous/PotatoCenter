@@ -1,5 +1,6 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
+import 'package:potato_center/internal/app_data.dart';
 
 class BottomSheetContents extends StatefulWidget {
   @override
@@ -18,7 +19,7 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(10.0),
+      padding: EdgeInsets.all(10.0 * AppData().scaleFactorA),
       child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -197,8 +197,8 @@ class _MyAppState extends State<MyApp> {
         body: Stack(
           children: <Widget>[
             Positioned(
-              top: 75.0,
-              left: 20.0,
+              top: 75.0 * AppData().scaleFactorH,
+              left: 20.0 * AppData().scaleFactorW,
               child: GestureDetector(
                 onLongPress: () => setState(() => roundBoi = !roundBoi),
                 child: new AnimatedOpacity(
@@ -263,7 +263,7 @@ class BodyCards extends StatefulWidget {
 }
 
 class _BodyCardsState extends State<BodyCards> {
-  TextStyle heading = TextStyle(fontSize: 30.0);
+  TextStyle heading = TextStyle(fontSize: 30.0 * AppData().scaleFactorH);
 
   @override
   Widget build(BuildContext _context) {
@@ -272,13 +272,15 @@ class _BodyCardsState extends State<BodyCards> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            padding:
+                EdgeInsets.symmetric(horizontal: 8.0 * AppData().scaleFactorW),
             child: Card(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
+                borderRadius:
+                    BorderRadius.circular(15.0 * AppData().scaleFactorA),
               ),
               child: Padding(
-                padding: EdgeInsets.all(15.0),
+                padding: EdgeInsets.all(15.0 * AppData().scaleFactorH),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -329,16 +331,19 @@ class _BodyCardsState extends State<BodyCards> {
                   AppData().updateIds == null ? 0 : AppData().updateIds.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 8.0 * AppData().scaleFactorW),
                   child: Theme(
                     data: ThemeData.light(),
                     child: Card(
                         color: Theme.of(_context).accentColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
+                          borderRadius: BorderRadius.circular(
+                              15.0 * AppData().scaleFactorA),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.all(15.0),
+                          padding:
+                              EdgeInsets.all(15.0 * AppData().scaleFactorA),
                           child: FutureBuilder(
                             future: SimplePermissions.getPermissionStatus(
                                 Permission.WriteExternalStorage),
@@ -365,14 +370,6 @@ class _BodyCardsState extends State<BodyCards> {
                                             children: <Widget>[
                                               Row(
                                                 children: <Widget>[
-                                                  /*Text(
-                                                            "POSP",
-                                                            style: heading,
-                                                          ),
-                                                          Padding(
-                                                              padding:
-                                                                  EdgeInsets.all(
-                                                                      5.0)),*/
                                                   FutureBuilder(
                                                       future: AndroidFlutterUpdater
                                                           .getVersion(AppData()
@@ -436,7 +433,8 @@ class _BodyCardsState extends State<BodyCards> {
                                                         Theme.of(_context)
                                                             .backgroundColor,
                                                     roundBoi: widget.roundBoi,
-                                                    thickness: 20.0,
+                                                    thickness: 20.0 *
+                                                        AppData().scaleFactorH,
                                                     autoPad: true,
                                                   ),
                                                 ),
@@ -446,10 +444,10 @@ class _BodyCardsState extends State<BodyCards> {
                                                         UpdateStatus.STARTING
                                                     ? Container()
                                                     : Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                    .only(
-                                                                left: 10.0),
+                                                        padding: EdgeInsets.only(
+                                                            left: 10.0 *
+                                                                AppData()
+                                                                    .scaleFactorW),
                                                         child: Text(
                                                             "${AppData().nativeData['percentage']}"),
                                                       )
