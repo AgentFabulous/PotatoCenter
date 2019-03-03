@@ -1,5 +1,6 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:simple_permissions/simple_permissions.dart';
@@ -11,11 +12,15 @@ import 'ui/common.dart';
 import 'ui/customprogressbar.dart';
 
 void main() {
-  runApp(MaterialApp(
-    theme: AppData().appTheme,
-    home: SplashScreen(),
-    routes: <String, WidgetBuilder>{'/app': (BuildContext context) => MyApp()},
-  ));
+  SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+      .then((_) => runApp(MaterialApp(
+            theme: AppData().appTheme,
+            home: SplashScreen(),
+            routes: <String, WidgetBuilder>{
+              '/app': (BuildContext context) => MyApp()
+            },
+          )));
 }
 
 class SplashScreen extends StatefulWidget {
