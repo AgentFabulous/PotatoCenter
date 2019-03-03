@@ -369,7 +369,13 @@ class _BodyCardsState extends State<BodyCards> {
                   padding: EdgeInsets.symmetric(
                       horizontal: 8.0 * AppData().scaleFactorW),
                   child: Theme(
-                    data: ThemeData.light(),
+                    data: ThemeData.light().copyWith(
+                        iconTheme: Theme.of(context)
+                            .iconTheme
+                            .copyWith(color: AppData().appTheme.cardColor),
+                        textTheme: Theme.of(context).textTheme.apply(
+                            bodyColor: AppData().appTheme.cardColor,
+                            displayColor: AppData().appTheme.cardColor)),
                     child: Card(
                         color: Theme.of(_context).accentColor,
                         shape: RoundedRectangleBorder(
