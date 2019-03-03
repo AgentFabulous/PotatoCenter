@@ -49,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen> {
         subscription: AppData().streamSubscription, fn: triggerCallbacks);
     AndroidFlutterUpdater.getNativeStatus().then((nativeMap) {
       AppData().nativeData = nativeMap;
-      print(AppData().nativeData['update_available']);
     });
 
     Duration sD = new Duration(milliseconds: 500);
@@ -129,6 +128,8 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 class MyApp extends StatefulWidget {
+  final Key key = GlobalKey<_MyAppState>();
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -156,6 +157,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void callback(Function fn) {
+    if (!mounted) return;
     setState(fn);
   }
 
@@ -203,18 +205,25 @@ class _MyAppState extends State<MyApp> {
                 onLongPress: () => setState(() => roundBoi = !roundBoi),
                 child: new AnimatedOpacity(
                   duration: Duration(milliseconds: 300),
-                  opacity: (strToBool(AppData().nativeData['update_available']))
-                      ? 1.0
-                      : 0.05,
+                  opacity:
+                      strToBool(AppData().nativeData['update_available']) ||
+                              (AppData().updateIds != null &&
+                                  AppData().updateIds.length > 0)
+                          ? 1.0
+                          : 0.05,
                   child: new ClipPath(
                       child: Text(
-                          strToBool(AppData().nativeData['update_available'])
+                          strToBool(AppData().nativeData['update_available']) ||
+                                  (AppData().updateIds != null &&
+                                      AppData().updateIds.length > 0)
                               ? "Update\navailable!"
                               : "Up to date.",
                           style: TextStyle(
                               fontSize: AppData().scaleFactorH * 70.0,
-                              color: strToBool(
-                                      AppData().nativeData['update_available'])
+                              color: strToBool(AppData()
+                                          .nativeData['update_available']) ||
+                                      (AppData().updateIds != null &&
+                                          AppData().updateIds.length > 0)
                                   ? Theme.of(context).accentColor
                                   : Theme.of(context).textTheme.title.color))),
                 ),
@@ -255,6 +264,7 @@ class _MyAppState extends State<MyApp> {
 
 class BodyCards extends StatefulWidget {
   final bool roundBoi;
+  final Key key = GlobalKey<_BodyCardsState>();
 
   BodyCards({this.roundBoi = false});
 
@@ -264,6 +274,17 @@ class BodyCards extends StatefulWidget {
 
 class _BodyCardsState extends State<BodyCards> {
   TextStyle heading = TextStyle(fontSize: 30.0 * AppData().scaleFactorH);
+
+  @override
+  void initState() {
+    super.initState();
+    registerCallback(widget.key, this.callback);
+  }
+
+  void callback(Function fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
 
   @override
   Widget build(BuildContext _context) {

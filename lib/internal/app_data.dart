@@ -10,8 +10,11 @@ class AppData {
   double scaleFactorW = 0;
   double scaleFactorH = 0;
   double scaleFactorA = 0;
+
+  // Obtained from native plugin
   Map nativeData = new Map();
   List updateIds = new List();
+
   static Color appColor =
       HSLColor.fromAHSL(1.0, Random().nextDouble() * 360, 0.75, 0.7).toColor();
   Map<Key, Function> setStateCallbacks = new Map();

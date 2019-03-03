@@ -5,11 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'app_data.dart';
 
 void triggerCallbacks(dynamic nativeMap) {
-  AppData().setStateCallbacks.forEach((key, Function cb) {
-    cb(() {
-      AppData().nativeData = nativeMap;
-    });
-  });
+  AppData().setStateCallbacks.forEach((key, Function cb) =>
+      AndroidFlutterUpdater.getDownloads().then((v) => cb(() {
+            AppData().nativeData = nativeMap;
+            AppData().updateIds = v;
+          })));
 }
 
 void registerCallback(Key k, Function cb) {
