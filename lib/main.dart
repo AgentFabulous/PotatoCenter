@@ -118,12 +118,19 @@ class _SplashScreenState extends State<SplashScreen> {
               opacity: opacityIcon,
               curve: Curves.easeInOut,
               duration: Duration(milliseconds: 300),
-              child: CircleAvatar(
-                  radius: 100.0 * AppData().scaleFactorW,
-                  backgroundColor: Colors.white,
-                  child: SvgPicture.asset("assets/app-logo.svg",
-                      fit: BoxFit.fitWidth,
-                      width: 150.0 * AppData().scaleFactorW)),
+              child: Card(
+                color: Colors.white,
+                elevation: 7.5,
+                shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(100.0 * AppData().scaleFactorW)),
+                child: CircleAvatar(
+                    radius: 100.0 * AppData().scaleFactorW,
+                    backgroundColor: Colors.transparent,
+                    child: SvgPicture.asset("assets/app-logo.svg",
+                        fit: BoxFit.fitWidth,
+                        width: 150.0 * AppData().scaleFactorW)),
+              ),
             ),
           ),
         ],
@@ -178,7 +185,7 @@ class _MyAppState extends State<MyApp> {
               Scaffold.of(context).showSnackBar(
                   SnackBar(content: Text("Checking for updates")));
             },
-            child: Icon(Icons.refresh, color: Colors.black),
+            child: Icon(Icons.refresh, color: AppData().appTheme.cardColor),
           );
         }),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
@@ -278,7 +285,9 @@ class BodyCards extends StatefulWidget {
 }
 
 class _BodyCardsState extends State<BodyCards> {
-  TextStyle heading = TextStyle(fontSize: 30.0 * AppData().scaleFactorH);
+  TextStyle heading = TextStyle(
+      fontSize: 30.0 * AppData().scaleFactorH,
+      color: AppData().appTheme.cardColor);
 
   @override
   void initState() {

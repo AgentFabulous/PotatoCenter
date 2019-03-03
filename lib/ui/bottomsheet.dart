@@ -24,7 +24,7 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
       children: <Widget>[
         Column(children: <Widget>[
           ListTile(
-            leading: Text("Update check interval"),
+            title: Text("Update check interval"),
             trailing: FutureBuilder(
               initialData: 2,
               future: AndroidFlutterUpdater.getUpdateCheckSetting(),
@@ -43,7 +43,7 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
             ),
           ),
           ListTile(
-            leading: Text("Mobile data warning"),
+            title: Text("Mobile data warning"),
             trailing: FutureBuilder(
               initialData: true,
               future: AndroidFlutterUpdater.getWarn(),
@@ -56,7 +56,7 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
             ),
           ),
           ListTile(
-            leading: Text("Delete updates when installed"),
+            title: Text("Delete updates when installed"),
             trailing: FutureBuilder(
               initialData: false,
               future: AndroidFlutterUpdater.getAutoDelete(),
@@ -73,7 +73,7 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
             future: AndroidFlutterUpdater.isABDevice(),
             builder: (context, snapshot) => snapshot.data
                 ? ListTile(
-                    leading: Text("Install updates faster"),
+                    title: Text("Install updates faster"),
                     trailing: FutureBuilder(
                       initialData: false,
                       future: AndroidFlutterUpdater.getPerformanceMode(),
@@ -92,22 +92,22 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
         Divider(),
         ListTile(
           onTap: () => launchUrl("https://potatoproject.co/changelog"),
-          leading: Text("Changelog"),
+          title: Text("Changelog"),
           trailing: Icon(Icons.code),
         ),
         ListTile(
           onTap: () => launchUrl("https://potatoproject.co"),
-          leading: Text("Website"),
+          title: Text("Website"),
           trailing: Icon(Icons.public),
         ),
         ListTile(
           onTap: () => launchUrl("https://twitter.com/PotatoAndroid"),
-          leading: Text("Twitter"),
+          title: Text("Twitter"),
           trailing: Icon(MdiIcons.twitter),
         ),
         ListTile(
           onTap: () => launchUrl("https://t.me/SaucyPotatoesOfficial"),
-          leading: Text("Telegram"),
+          title: Text("Telegram"),
           trailing: Icon(MdiIcons.telegram),
         )
       ],
