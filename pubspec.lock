@@ -6,7 +6,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "9ae1751e562a74ecc6d20416c291f9a584ba1a4f"
+      resolved-ref: b88f32a2f957d6f92d41bd3ea69d0f17b4c6f0a3
       url: "git://github.com/AgentFabulous/android_flutter_updater"
     source: git
     version: "1.0.0"
