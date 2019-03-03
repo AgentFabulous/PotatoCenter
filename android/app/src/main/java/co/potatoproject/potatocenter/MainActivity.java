@@ -1,4 +1,4 @@
-package co.potatoproject.potatocenter;
+package co.potatoproject.center;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
