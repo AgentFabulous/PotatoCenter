@@ -2,6 +2,7 @@ import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:potato_center/internal/methods.dart';
+import 'package:potato_center/ui/common.dart';
 
 class BottomSheetContents extends StatefulWidget {
   @override
@@ -110,6 +111,102 @@ class _BottomSheetContentsState extends State<BottomSheetContents> {
           title: Text("Telegram"),
           trailing: Icon(MdiIcons.telegram),
         )
+      ],
+    );
+  }
+}
+
+class AdvancedBottomSheetContents extends StatefulWidget {
+  @override
+  _AdvancedBottomSheetContentsState createState() =>
+      _AdvancedBottomSheetContentsState();
+}
+
+class _AdvancedBottomSheetContentsState
+    extends State<AdvancedBottomSheetContents> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Column(children: <Widget>[
+          FutureBuilder(
+            initialData: "Loading...",
+            future: AndroidFlutterUpdater.getReleaseType(),
+            builder: (context, snapshot) => ListTile(
+                title: Text("Update channel"),
+                subtitle: Text("Current: ${snapshot.data}"),
+                trailing: RaisedButton(
+                    color: Theme.of(context).accentColor,
+                    onPressed: () => popupMenuBuilder(
+                        context, ChannelSelector(), dismiss: true),
+                    child: Text("Change",
+                        style: TextStyle(color: Theme.of(context).cardColor)))),
+          ),
+          ListTile(
+            title: Text("Build verification"),
+            trailing: FutureBuilder(
+              initialData: true,
+              future: AndroidFlutterUpdater.getVerify(),
+              builder: (context, snapshot) {
+                return Switch(
+                    value: snapshot.data,
+                    onChanged: (b) => AndroidFlutterUpdater.setVerify(b)
+                        .then((v) => setState(() {})));
+              },
+            ),
+          ),
+        ]),
+      ],
+    );
+  }
+}
+
+class ChannelSelector extends StatefulWidget {
+  @override
+  _ChannelSelectorState createState() => _ChannelSelectorState();
+}
+
+class _ChannelSelectorState extends State<ChannelSelector> {
+  final _formKey = GlobalKey<FormState>();
+  String _channel;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Update channel"),
+      content: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+        Form(
+          key: _formKey,
+          child: TextFormField(
+            decoration: InputDecoration(hintText: "Channel name"),
+            validator: (value) {
+              if (value.isEmpty)
+                return "Please enter a channel name";
+              else
+                _channel = value;
+            },
+          ),
+        )
+      ]),
+      actions: <Widget>[
+        FlatButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("Cancel")),
+        FlatButton(
+            onPressed: () {
+              AndroidFlutterUpdater.setReleaseType("__default__");
+              Navigator.of(context).pop();
+            },
+            child: Text("Reset")),
+        FlatButton(
+            onPressed: () {
+              if (_formKey.currentState.validate()) {
+                AndroidFlutterUpdater.setReleaseType(_channel);
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text("Apply")),
       ],
     );
   }

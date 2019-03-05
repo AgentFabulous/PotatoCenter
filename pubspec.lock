@@ -6,10 +6,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b88f32a2f957d6f92d41bd3ea69d0f17b4c6f0a3
+      resolved-ref: a4ef28ca6c308ae30ed40904de878771fabe3e70
       url: "git://github.com/AgentFabulous/android_flutter_updater"
     source: git
-    version: "1.0.0"
+    version: "1.1.0"
   async:
     dependency: transitive
     description:
@@ -146,6 +146,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  shared_preferences:
+    dependency: "direct main"
+    description:
+      name: shared_preferences
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.1+1"
   simple_permissions:
     dependency: "direct main"
     description:

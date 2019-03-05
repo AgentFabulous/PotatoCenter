@@ -12,15 +12,21 @@ import 'ui/common.dart';
 import 'ui/customprogressbar.dart';
 
 void main() {
-  SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
-      .then((_) => runApp(MaterialApp(
-            theme: AppData().appTheme,
-            home: SplashScreen(),
-            routes: <String, WidgetBuilder>{
-              '/app': (BuildContext context) => MyApp()
-            },
-          )));
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]).then((_) => runApp(StreamBuilder(
+      initialData: false,
+      stream: AppData().lightThemeEnabled,
+      builder: (context, snapshot) {
+        return MaterialApp(
+          theme: snapshot.data ? AppData().appTheme : AppData().appThemeDark,
+          home: SplashScreen(),
+          routes: <String, WidgetBuilder>{
+            '/app': (BuildContext context) => MyApp()
+          },
+        );
+      })));
 }
 
 class SplashScreen extends StatefulWidget {
@@ -42,19 +48,27 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
+    // Set theme before we do anything
+    getLightTheme().then((b) => AppData().setLight(b));
+
     super.initState();
 
     // Sync with native status
     AndroidFlutterUpdater.checkForUpdates().then((v) {
       AndroidFlutterUpdater.getNativeStatus()
           .then((nativeMap) => AppData().nativeData = nativeMap);
-      AndroidFlutterUpdater.getDownloads().then((v) => AppData().updateIds = v);
+      AndroidFlutterUpdater.getDownloads().then((v) {
+        AppData().updateIds = v;
+        triggerCallbacks(AppData().nativeData, force: true);
+      });
     });
     AndroidFlutterUpdater.registerStreamListener(
         subscription: AppData().streamSubscription, fn: triggerCallbacks);
     AndroidFlutterUpdater.getNativeStatus().then((nativeMap) {
       AppData().nativeData = nativeMap;
     });
+
+    handleAdvancedMode();
 
     Duration sD = new Duration(milliseconds: 500);
     Duration mD = new Duration(seconds: 1);
@@ -159,7 +173,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    registerCallback(widget.key, this.callback);
+    registerCallback(widget.key, this.callback, critical: false);
   }
 
   @override
@@ -185,7 +199,7 @@ class _MyAppState extends State<MyApp> {
               Scaffold.of(context).showSnackBar(
                   SnackBar(content: Text("Checking for updates")));
             },
-            child: Icon(Icons.refresh, color: AppData().appTheme.cardColor),
+            child: Icon(Icons.refresh, color: Theme.of(context).cardColor),
           );
         }),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
@@ -203,6 +217,34 @@ class _MyAppState extends State<MyApp> {
                       },
                       icon: Icon(Icons.keyboard_arrow_up),
                     ),
+              ),
+              FutureBuilder(
+                initialData: false,
+                future: getAdvancedMode(),
+                builder: (context, snapshot) => snapshot.data
+                    ? IconButton(
+                        onPressed: () => showModalBottomSheet(
+                            context: context,
+                            builder: (context) =>
+                                AdvancedBottomSheetContents()),
+                        icon: Icon(Icons.settings),
+                      )
+                    : Container(height: 0),
+              ),
+              FutureBuilder(
+                initialData: true,
+                future: getLightTheme(),
+                builder: (context, snapshot) => AnimatedCrossFade(
+                    firstChild: IconButton(
+                        icon: Icon(Icons.brightness_medium),
+                        onPressed: () => setLightTheme(false)),
+                    secondChild: IconButton(
+                        icon: Icon(Icons.brightness_4),
+                        onPressed: () => setLightTheme(true)),
+                    crossFadeState: snapshot.data
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    duration: Duration(milliseconds: 300)),
               )
             ],
           ),
@@ -247,13 +289,21 @@ class _MyAppState extends State<MyApp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  AnimatedOpacity(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      opacity: 0.05,
-                      child: Container(
-                          height: AppData().scaleFactorH * 30.0,
-                          child: Image.asset("posp.png"))),
+                  GestureDetector(
+                    onTap: () => handleAdvancedMode(),
+                    onLongPress: () {
+                      setAdvancedMode(false).then(
+                          (_) => setState(() => AppData().advancedMode = 0));
+                    },
+                    child: AnimatedOpacity(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        opacity: 0.05,
+                        child: Container(
+                            height: AppData().scaleFactorH * 30.0,
+                            child: ImageIcon(AssetImage("posp.png"),
+                                size: AppData().scaleFactorH * 100.0))),
+                  ),
                 ],
               ),
             ),
@@ -285,14 +335,17 @@ class BodyCards extends StatefulWidget {
 }
 
 class _BodyCardsState extends State<BodyCards> {
-  TextStyle heading = TextStyle(
-      fontSize: 30.0 * AppData().scaleFactorH,
-      color: AppData().appTheme.cardColor);
+  TextStyle heading = new TextStyle();
 
   @override
   void initState() {
     super.initState();
-    registerCallback(widget.key, this.callback);
+    registerCallback(widget.key, this.callback, critical: false);
+    Future.delayed(
+        Duration.zero,
+        () => heading = TextStyle(
+            fontSize: 30.0 * AppData().scaleFactorH,
+            color: Theme.of(context).cardColor)).then((_) => setState(() {}));
   }
 
   void callback(Function fn) {
@@ -327,10 +380,12 @@ class _BodyCardsState extends State<BodyCards> {
                     Row(
                       children: <Widget>[
                         FutureBuilder(
+                            initialData: "0.0",
                             future: AndroidFlutterUpdater.getBuildVersion(),
                             builder: (context, snapshot) =>
                                 Text("v${snapshot.data}")),
                         FutureBuilder(
+                            initialData: "...",
                             future:
                                 AndroidFlutterUpdater.getProp("ro.potato.dish"),
                             builder: (context, snapshot) =>
@@ -340,16 +395,19 @@ class _BodyCardsState extends State<BodyCards> {
                     Row(
                       children: <Widget>[
                         FutureBuilder(
+                            initialData: "...",
                             future: AndroidFlutterUpdater.getModel(),
                             builder: (context, snapshot) =>
                                 Text("${snapshot.data}")),
                         FutureBuilder(
+                            initialData: "...",
                             future: AndroidFlutterUpdater.getDeviceName(),
                             builder: (context, snapshot) =>
                                 Text(" - (${snapshot.data})")),
                       ],
                     ),
                     FutureBuilder(
+                        initialData: "...",
                         future: AndroidFlutterUpdater.getBuildDate(),
                         builder: (context, snapshot) =>
                             Text("${snapshot.data}")),
@@ -368,153 +426,30 @@ class _BodyCardsState extends State<BodyCards> {
                 return Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: 8.0 * AppData().scaleFactorW),
-                  child: Theme(
-                    data: ThemeData.light().copyWith(
-                        iconTheme: Theme.of(context)
-                            .iconTheme
-                            .copyWith(color: AppData().appTheme.cardColor),
-                        textTheme: Theme.of(context).textTheme.apply(
-                            bodyColor: AppData().appTheme.cardColor,
-                            displayColor: AppData().appTheme.cardColor)),
-                    child: Card(
-                        color: Theme.of(_context).accentColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              15.0 * AppData().scaleFactorA),
-                        ),
-                        child: Padding(
-                          padding:
-                              EdgeInsets.all(15.0 * AppData().scaleFactorA),
-                          child: FutureBuilder(
-                            future: SimplePermissions.getPermissionStatus(
-                                Permission.WriteExternalStorage),
-                            builder: (context, snapshot) => (snapshot.data
-                                        as PermissionStatus) !=
-                                    PermissionStatus.authorized
-                                ? GestureDetector(
-                                    onTap: () =>
-                                        SimplePermissions.requestPermission(
-                                                Permission.WriteExternalStorage)
-                                            .then((v) => setState(() {})),
-                                    child: Text("No storage write permissions!",
-                                        style: heading),
-                                  )
-                                : Column(
-                                    children: <Widget>[
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: <Widget>[
-                                              Row(
-                                                children: <Widget>[
-                                                  FutureBuilder(
-                                                      future: AndroidFlutterUpdater
-                                                          .getVersion(AppData()
-                                                                  .updateIds[
-                                                              index]),
-                                                      initialData: "Loading",
-                                                      builder: (context, text) {
-                                                        return Text(
-                                                          "v${text.data}",
-                                                          style: heading,
-                                                        );
-                                                      }),
-                                                ],
-                                              ),
-                                              FutureBuilder(
-                                                  future: AndroidFlutterUpdater
-                                                      .getTimestamp(AppData()
-                                                          .updateIds[index]),
-                                                  initialData: "Loading",
-                                                  builder: (context, text) {
-                                                    return Text(text.data);
-                                                  }),
-                                            ],
-                                          ),
-                                          ControlsRow(index: index)
-                                        ],
-                                      ),
-                                      statusEnumCheck(UpdateStatus.STARTING) ||
-                                              statusEnumCheck(
-                                                  UpdateStatus.DOWNLOADING) ||
-                                              statusEnumCheck(
-                                                  UpdateStatus.PAUSED)
-                                          ? Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: <Widget>[
-                                                Expanded(
-                                                  child: CustomProgressBar(
-                                                    percentage: strToStatusEnum(
-                                                                AppData()
-                                                                        .nativeData[
-                                                                    'update_status']) ==
-                                                            UpdateStatus
-                                                                .STARTING
-                                                        ? null
-                                                        : double.parse(
-                                                            filterPercentage(AppData()
-                                                                .nativeData[
-                                                                    'percentage']
-                                                                .toString())),
-                                                    positiveColor:
-                                                        Color.fromRGBO(
-                                                            AppData
-                                                                .appColor.red,
-                                                            AppData
-                                                                .appColor.green,
-                                                            AppData
-                                                                .appColor.blue,
-                                                            0.9),
-                                                    negativeColor:
-                                                        Theme.of(_context)
-                                                            .backgroundColor,
-                                                    roundBoi: widget.roundBoi,
-                                                    thickness: 20.0 *
-                                                        AppData().scaleFactorH,
-                                                    autoPad: true,
-                                                  ),
-                                                ),
-                                                strToStatusEnum(AppData()
-                                                                .nativeData[
-                                                            'update_status']) ==
-                                                        UpdateStatus.STARTING
-                                                    ? Container()
-                                                    : Padding(
-                                                        padding: EdgeInsets.only(
-                                                            left: 10.0 *
-                                                                AppData()
-                                                                    .scaleFactorW),
-                                                        child: Text(
-                                                            "${AppData().nativeData['percentage']}"),
-                                                      )
-                                              ],
-                                            )
-                                          : Container(),
-                                      strToStatusEnum(AppData().nativeData[
-                                                  'update_status']) ==
-                                              UpdateStatus.UNKNOWN
-                                          ? Container()
-                                          : Text(strToStatusEnum(
-                                                      AppData().nativeData[
-                                                          'update_status']) ==
-                                                  UpdateStatus.DOWNLOADING
-                                              ? "${AppData().nativeData['eta']} (${totalCompletedInMb()}MB of ${totalSizeInMb()}MB) "
-                                              : statusCapitalize(
-                                                  strToStatusEnum(
-                                                          AppData().nativeData[
-                                                              'update_status'])
-                                                      .toString()
-                                                      .toLowerCase()))
-                                    ],
-                                  ),
-                          ),
-                        )),
-                  ),
+                  child: FutureBuilder(
+                      future: getLightTheme(),
+                      initialData: true,
+                      builder: (context, snapshot) {
+                        return Theme(
+                          data: snapshot.data
+                              ? AppData().appThemeDark
+                              : AppData().appTheme,
+                          child: Card(
+                              color: Theme.of(_context).accentColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    15.0 * AppData().scaleFactorA),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.all(
+                                    15.0 * AppData().scaleFactorA),
+                                child: CardContents(
+                                    index: index,
+                                    heading: heading,
+                                    roundBoi: widget.roundBoi),
+                              )),
+                        );
+                      }),
                 );
               }),
         ),
@@ -523,8 +458,157 @@ class _BodyCardsState extends State<BodyCards> {
   }
 }
 
+class CardContents extends StatefulWidget {
+  final int index;
+  final TextStyle heading;
+  final bool roundBoi;
+
+  CardContents(
+      {@required this.index, @required this.heading, @required this.roundBoi});
+
+  @override
+  _CardContentsState createState() => _CardContentsState();
+}
+
+class _CardContentsState extends State<CardContents> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      initialData: PermissionStatus.authorized,
+      future: SimplePermissions.getPermissionStatus(
+          Permission.WriteExternalStorage),
+      builder: (context, snapshot) => (snapshot.data as PermissionStatus) !=
+              PermissionStatus.authorized
+          ? GestureDetector(
+              onTap: () => SimplePermissions.requestPermission(
+                      Permission.WriteExternalStorage)
+                  .then((v) => setState(() {})),
+              child:
+                  Text("No storage write permissions!", style: widget.heading),
+            )
+          : Column(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            FutureBuilder(
+                                future: AndroidFlutterUpdater.getVersion(
+                                    AppData().updateIds[widget.index]),
+                                initialData: "0.0",
+                                builder: (context, text) {
+                                  return Text(
+                                    "v${text.data}",
+                                    style: widget.heading,
+                                  );
+                                }),
+                          ],
+                        ),
+                        FutureBuilder(
+                            future: AndroidFlutterUpdater.getTimestamp(
+                                AppData().updateIds[widget.index]),
+                            initialData: "Loading",
+                            builder: (context, text) {
+                              return Text(text.data);
+                            }),
+                      ],
+                    ),
+                    ControlsRow(index: widget.index)
+                  ],
+                ),
+                ProgressWidget(roundBoi: widget.roundBoi)
+              ],
+            ),
+    );
+  }
+}
+
+class ProgressWidget extends StatefulWidget {
+  final Key key = GlobalKey<_ProgressWidgetState>();
+  final bool roundBoi;
+
+  ProgressWidget({@required this.roundBoi});
+
+  @override
+  _ProgressWidgetState createState() => _ProgressWidgetState();
+}
+
+class _ProgressWidgetState extends State<ProgressWidget> {
+  @override
+  void initState() {
+    super.initState();
+    registerCallback(widget.key, this.callback, critical: true);
+  }
+
+  @override
+  void dispose() {
+    unregisterCallback(widget.key);
+    super.dispose();
+  }
+
+  void callback(Function fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        statusEnumCheck(UpdateStatus.STARTING) ||
+                statusEnumCheck(UpdateStatus.DOWNLOADING) ||
+                statusEnumCheck(UpdateStatus.PAUSED)
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                      child: CustomProgressBar(
+                    percentage: strToStatusEnum(
+                                AppData().nativeData['update_status']) ==
+                            UpdateStatus.STARTING
+                        ? null
+                        : double.parse(filterPercentage(
+                            AppData().nativeData['percentage'].toString())),
+                    positiveColor: Color.fromRGBO(AppData.appColor.red,
+                        AppData.appColor.green, AppData.appColor.blue, 0.9),
+                    negativeColor: Theme.of(context).backgroundColor,
+                    roundBoi: widget.roundBoi,
+                    thickness: 20.0 * AppData().scaleFactorH,
+                    autoPad: true,
+                  )),
+                  strToStatusEnum(AppData().nativeData['update_status']) ==
+                          UpdateStatus.STARTING
+                      ? Container()
+                      : Padding(
+                          padding: EdgeInsets.only(
+                              left: 10.0 * AppData().scaleFactorW),
+                          child: Text("${AppData().nativeData['percentage']}"),
+                        )
+                ],
+              )
+            : Container(),
+        strToStatusEnum(AppData().nativeData['update_status']) ==
+                UpdateStatus.UNKNOWN
+            ? Container()
+            : Text(strToStatusEnum(AppData().nativeData['update_status']) ==
+                    UpdateStatus.DOWNLOADING
+                ? "${AppData().nativeData['eta']} (${totalCompletedInMb()}MB of ${totalSizeInMb()}MB) "
+                : statusCapitalize(
+                    strToStatusEnum(AppData().nativeData['update_status'])
+                        .toString()
+                        .toLowerCase())),
+      ],
+    );
+  }
+}
+
 class ControlsRow extends StatefulWidget {
   final int index;
+  final Key key = GlobalKey<_ControlsRowState>();
 
   ControlsRow({@required this.index});
 
@@ -533,6 +617,23 @@ class ControlsRow extends StatefulWidget {
 }
 
 class _ControlsRowState extends State<ControlsRow> {
+  @override
+  void initState() {
+    super.initState();
+    registerCallback(widget.key, this.callback, critical: true);
+  }
+
+  @override
+  void dispose() {
+    unregisterCallback(widget.key);
+    super.dispose();
+  }
+
+  void callback(Function fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -548,26 +649,22 @@ class _ControlsRowState extends State<ControlsRow> {
                     if (v)
                       popupMenuBuilder(
                           context,
-                          Theme(
-                            data: AppData().appTheme,
-                            child: AlertDialog(
-                              title: Text("Warning!"),
-                              content: Text(
-                                  "You appear to be on mobile data! Would you like to still continue?"),
-                              actions: <Widget>[
-                                FlatButton(
-                                    child: Text("No"),
-                                    onPressed: () =>
-                                        Navigator.of(context).pop()),
-                                FlatButton(
-                                    child: Text("Yes"),
-                                    onPressed: () {
-                                      AndroidFlutterUpdater.startDownload(
-                                          AppData().updateIds[widget.index]);
-                                      Navigator.of(context).pop();
-                                    }),
-                              ],
-                            ),
+                          AlertDialog(
+                            title: Text("Warning!"),
+                            content: Text(
+                                "You appear to be on mobile data! Would you like to still continue?"),
+                            actions: <Widget>[
+                              FlatButton(
+                                  child: Text("No"),
+                                  onPressed: () => Navigator.of(context).pop()),
+                              FlatButton(
+                                  child: Text("Yes"),
+                                  onPressed: () {
+                                    AndroidFlutterUpdater.startDownload(
+                                        AppData().updateIds[widget.index]);
+                                    Navigator.of(context).pop();
+                                  }),
+                            ],
                           ),
                           dismiss: true);
                     else

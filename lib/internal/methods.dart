@@ -1,19 +1,23 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_data.dart';
 
-void triggerCallbacks(dynamic nativeMap) {
-  AppData().setStateCallbacks.forEach((key, Function cb) =>
-      AndroidFlutterUpdater.getDownloads().then((v) => cb(() {
+void triggerCallbacks(dynamic nativeMap, {bool force = false}) {
+  AppData().setStateCallbacks.forEach((key, data) {
+    if (data[1] || force)
+      AndroidFlutterUpdater.getDownloads().then((v) => data[0](() {
             AppData().nativeData = nativeMap;
             AppData().updateIds = v;
-          })));
+          }));
+  });
 }
 
-void registerCallback(Key k, Function cb) {
-  AppData().setStateCallbacks[k] = cb;
+void registerCallback(Key k, Function cb, {bool critical = false}) {
+  dynamic data = [cb, critical];
+  AppData().setStateCallbacks[k] = data;
 }
 
 void unregisterCallback(Key k) {
@@ -60,4 +64,41 @@ void launchUrl(String url) async {
     await launch(url);
   else
     throw 'Could not launch $url!';
+}
+
+Future<void> handleAdvancedMode() async {
+  bool advancedModeEnabled = await getAdvancedMode();
+  if (!advancedModeEnabled) {
+    // Advanced mode not enabled
+    // Check and set
+    if (++AppData().advancedMode >= 10) {
+      triggerCallbacks(AppData().nativeData, force: true);
+      setAdvancedMode(true);
+    }
+  } else {
+    // Advanced mode enabled
+    // This means app has just started
+    if (AppData().advancedMode < 10) triggerCallbacks(AppData().nativeData);
+  }
+}
+
+Future<bool> getAdvancedMode() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('advanced_mode') ?? false;
+}
+
+Future<void> setAdvancedMode(bool enable) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool('advanced_mode', enable);
+}
+
+Future<bool> getLightTheme() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('light_theme') ?? false;
+}
+
+Future<void> setLightTheme(bool light) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setBool('light_theme', light);
+  AppData().setLight(light);
 }
