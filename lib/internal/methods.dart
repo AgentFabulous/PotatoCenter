@@ -7,7 +7,7 @@ import 'app_data.dart';
 
 void triggerCallbacks(dynamic nativeMap, {bool force = false}) {
   AppData().setStateCallbacks.forEach((key, data) {
-    if (data[1] || force)
+    if (data[1] || force || strToBool(nativeMap['force_update_ui']))
       AndroidFlutterUpdater.getDownloads().then((v) => data[0](() {
             AppData().nativeData = nativeMap;
             AppData().updateIds = v;

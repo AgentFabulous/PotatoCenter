@@ -335,7 +335,7 @@ class BodyCards extends StatefulWidget {
 }
 
 class _BodyCardsState extends State<BodyCards> {
-  TextStyle heading = new TextStyle();
+  TextStyle heading = TextStyle(fontSize: 30.0 * AppData().scaleFactorH);
 
   @override
   void initState() {
