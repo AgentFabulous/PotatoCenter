@@ -124,6 +124,25 @@ class AdvancedBottomSheetContents extends StatefulWidget {
 
 class _AdvancedBottomSheetContentsState
     extends State<AdvancedBottomSheetContents> {
+  final key = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    registerCallback(key, this.callback, critical: true);
+  }
+
+  @override
+  void dispose() {
+    unregisterCallback(key);
+    super.dispose();
+  }
+
+  void callback(Function fn) {
+    if (!mounted) return;
+    setState(fn);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -131,6 +150,7 @@ class _AdvancedBottomSheetContentsState
       children: <Widget>[
         Column(children: <Widget>[
           FutureBuilder(
+            key: key,
             initialData: "Loading...",
             future: AndroidFlutterUpdater.getReleaseType(),
             builder: (context, snapshot) => ListTile(
