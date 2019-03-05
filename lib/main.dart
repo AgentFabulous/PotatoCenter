@@ -348,6 +348,12 @@ class _BodyCardsState extends State<BodyCards> {
             color: Theme.of(context).cardColor)).then((_) => setState(() {}));
   }
 
+  @override
+  void dispose() {
+    unregisterCallback(widget.key);
+    super.dispose();
+  }
+
   void callback(Function fn) {
     if (!mounted) return;
     setState(fn);
