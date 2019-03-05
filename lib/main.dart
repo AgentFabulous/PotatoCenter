@@ -12,21 +12,35 @@ import 'ui/common.dart';
 import 'ui/customprogressbar.dart';
 
 void main() {
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown
-  ]).then((_) => runApp(StreamBuilder(
-      initialData: false,
-      stream: AppData().lightThemeEnabled,
-      builder: (context, snapshot) {
-        return MaterialApp(
-          theme: snapshot.data ? AppData().appTheme : AppData().appThemeDark,
-          home: SplashScreen(),
-          routes: <String, WidgetBuilder>{
-            '/app': (BuildContext context) => MyApp()
-          },
-        );
-      })));
+  SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+      .then((_) => runApp(StreamBuilder(
+          initialData: false,
+          stream: AppData().lightThemeEnabled,
+          builder: (context, snapshot) => InheritedApp(
+                child: MaterialApp(
+                  theme: snapshot.data
+                      ? AppData().appTheme
+                      : AppData().appThemeDark,
+                  home: SplashScreen(),
+                  routes: <String, WidgetBuilder>{
+                    '/app': (BuildContext context) => MyApp()
+                  },
+                ),
+                data: snapshot.data,
+              ))));
+}
+
+class InheritedApp extends InheritedWidget {
+  final dynamic data;
+
+  InheritedApp({this.data, Widget child}) : super(child: child);
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+
+  static InheritedApp of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(InheritedApp);
 }
 
 class SplashScreen extends StatefulWidget {
@@ -579,9 +593,16 @@ class _ProgressWidgetState extends State<ProgressWidget> {
                         ? null
                         : double.parse(filterPercentage(
                             AppData().nativeData['percentage'].toString())),
-                    positiveColor: Color.fromRGBO(AppData.appColor.red,
-                        AppData.appColor.green, AppData.appColor.blue, 0.9),
-                    negativeColor: Theme.of(context).backgroundColor,
+                    negativeColor:
+                        /*Color.fromRGBO(AppData.appColor.red,
+                        AppData.appColor.green, AppData.appColor.blue, 0.9)*/
+                        HSLColor.fromColor(AppData().appTheme.accentColor)
+                            .withLightness(0.65)
+                            .withSaturation(0.65)
+                            .toColor(),
+                    positiveColor: InheritedApp.of(context).data
+                        ? AppData().appTheme.cardColor
+                        : AppData().appThemeDark.cardColor,
                     roundBoi: widget.roundBoi,
                     thickness: 20.0 * AppData().scaleFactorH,
                     autoPad: true,
