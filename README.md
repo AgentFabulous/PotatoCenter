@@ -1,16 +1,14 @@
-# potato_center
+# PotatoCenter
 
-A new Flutter application.
+A brand new OTA app written in Flutter for updating Android. Written with [
+POSP](https://potatoproject.co/) in mind, it works with the [android_flutter_updater](https://github.com/AgentFabulous/android_flutter_updater) plugin to interact with native components of Android such as [UpdateEngine](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/UpdateEngine.java) to serve a hassle free update experience.
 
-## Getting Started
+## Setting up
+- Open the project in Android Studio.
+- Add your project's framework.jar to android/libs
+- Run flutter packages get 
+- Run main.dart
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+## Contributing
+- This app is mostly a minimal frontend for the [plugin](https://github.com/AgentFabulous/android_flutter_updater).
+- When submitting changes, be sure to [reformat your sources](https://flutter.dev/docs/development/tools/formatting) in Android Studio.
