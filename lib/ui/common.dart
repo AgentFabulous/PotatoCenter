@@ -15,3 +15,15 @@ class NoGlowScrollBehavior extends ScrollBehavior {
     return child;
   }
 }
+
+class InheritedApp extends InheritedWidget {
+  final dynamic data;
+
+  InheritedApp({this.data, Widget child}) : super(child: child);
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+
+  static InheritedApp of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(InheritedApp);
+}
