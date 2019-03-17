@@ -399,8 +399,29 @@ class _ControlsRowState extends State<ControlsRow> {
                     : Container(),
                 status == UpdateStatus.VERIFIED
                     ? IconButton(
-                        onPressed: () => AndroidFlutterUpdater.installUpdate(
-                            AppData().updateIds[widget.index]),
+                        onPressed: () {
+                          popupMenuBuilder(
+                              context,
+                              AlertDialog(
+                                title: Text("Install Update"),
+                                content: Text(
+                                    "This operation will install the update. Continue?"),
+                                actions: <Widget>[
+                                  FlatButton(
+                                      child: Text("No"),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop()),
+                                  FlatButton(
+                                      child: Text("Yes"),
+                                      onPressed: () {
+                                        AndroidFlutterUpdater.installUpdate(
+                                            AppData().updateIds[widget.index]);
+                                        Navigator.of(context).pop();
+                                      }),
+                                ],
+                              ),
+                              dismiss: true);
+                        },
                         icon: Icon(Icons.perm_device_information))
                     : Container()
               ],
