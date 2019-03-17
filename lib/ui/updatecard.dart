@@ -186,7 +186,7 @@ class _CardContentsState extends State<CardContents> {
             ControlsRow(index: widget.index, color: widget.heading.color)
           ],
         ),
-        ProgressWidget(roundBoi: widget.roundBoi)
+        ProgressWidget(roundBoi: widget.roundBoi, index: widget.index)
       ],
     );
   }
@@ -194,9 +194,10 @@ class _CardContentsState extends State<CardContents> {
 
 class ProgressWidget extends StatefulWidget {
   final Key key = GlobalKey<_ProgressWidgetState>();
+  final int index;
   final bool roundBoi;
 
-  ProgressWidget({@required this.roundBoi});
+  ProgressWidget({@required this.roundBoi, @required this.index});
 
   @override
   _ProgressWidgetState createState() => _ProgressWidgetState();
@@ -222,59 +223,70 @@ class _ProgressWidgetState extends State<ProgressWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        statusEnumCheck(UpdateStatus.STARTING) ||
-                statusEnumCheck(UpdateStatus.DOWNLOADING) ||
-                statusEnumCheck(UpdateStatus.PAUSED)
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                      child: CustomProgressBar(
-                    percentage: strToStatusEnum(
-                                AppData().nativeData['update_status']) ==
-                            UpdateStatus.STARTING
-                        ? null
-                        : double.parse(filterPercentage(
-                            AppData().nativeData['percentage'].toString())),
-                    negativeColor:
-                        /*Color.fromRGBO(AppData.appColor.red,
-                        AppData.appColor.green, AppData.appColor.blue, 0.9)*/
-                        HSLColor.fromColor(AppData().appTheme.accentColor)
-                            .withLightness(0.65)
-                            .withSaturation(0.65)
-                            .toColor(),
-                    positiveColor: InheritedApp.of(context).data
-                        ? AppData().appTheme.cardColor
-                        : AppData().appThemeDark.cardColor,
-                    roundBoi: widget.roundBoi,
-                    thickness: 20.0 * AppData().scaleFactorH,
-                    autoPad: true,
-                  )),
-                  strToStatusEnum(AppData().nativeData['update_status']) ==
-                          UpdateStatus.STARTING
-                      ? Container()
-                      : Padding(
-                          padding: EdgeInsets.only(
-                              left: 10.0 * AppData().scaleFactorW),
-                          child: Text("${AppData().nativeData['percentage']}"),
-                        )
-                ],
-              )
-            : Container(),
-        strToStatusEnum(AppData().nativeData['update_status']) ==
-                UpdateStatus.UNKNOWN
-            ? Container()
-            : Text(strToStatusEnum(AppData().nativeData['update_status']) ==
-                    UpdateStatus.DOWNLOADING
-                ? "${AppData().nativeData['eta']} (${totalCompletedInMb()}MB of ${totalSizeInMb()}MB) "
-                : statusCapitalize(
-                    strToStatusEnum(AppData().nativeData['update_status'])
-                        .toString()
-                        .toLowerCase())),
-      ],
-    );
+    return FutureBuilder(
+        initialData: "Unknown",
+        future:
+            AndroidFlutterUpdater.getStatus(AppData().updateIds[widget.index]),
+        builder: (context, snapshot) {
+          UpdateStatus status = strToStatusEnum(snapshot.data);
+          return Column(
+            children: <Widget>[
+              FutureBuilder(
+                initialData: 0,
+                future: AndroidFlutterUpdater.getDownloadProgress(
+                    AppData().updateIds[widget.index]),
+                builder: (context, snapshot) => status ==
+                            UpdateStatus.STARTING ||
+                        status == UpdateStatus.DOWNLOADING ||
+                        status == UpdateStatus.PAUSED
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Expanded(
+                              child: CustomProgressBar(
+                            percentage: status == UpdateStatus.STARTING
+                                ? null
+                                : snapshot.data.toDouble(),
+                            negativeColor:
+                                /*Color.fromRGBO(AppData.appColor.red,
+                              AppData.appColor.green, AppData.appColor.blue, 0.9)*/
+                                HSLColor.fromColor(
+                                        AppData().appTheme.accentColor)
+                                    .withLightness(0.65)
+                                    .withSaturation(0.65)
+                                    .toColor(),
+                            positiveColor: InheritedApp.of(context).data
+                                ? AppData().appTheme.cardColor
+                                : AppData().appThemeDark.cardColor,
+                            roundBoi: widget.roundBoi,
+                            thickness: 20.0 * AppData().scaleFactorH,
+                            autoPad: true,
+                          )),
+                          status == UpdateStatus.STARTING
+                              ? Container()
+                              : Padding(
+                                  padding: EdgeInsets.only(
+                                      left: 10.0 * AppData().scaleFactorW),
+                                  child: Text("${snapshot.data.toString()}%"),
+                                )
+                        ],
+                      )
+                    : Container(),
+              ),
+              status == UpdateStatus.UNKNOWN
+                  ? Container()
+                  : status == UpdateStatus.DOWNLOADING
+                      ? FutureBuilder(
+                          initialData: "Getting ready",
+                          future: getDownloadStatusLine(
+                              AppData().updateIds[widget.index]),
+                          builder: (context, snapshot) => Text(snapshot.data))
+                      : Text(statusCapitalize(strToStatusEnum(snapshot.data)
+                          .toString()
+                          .toLowerCase()))
+            ],
+          );
+        });
   }
 }
 
@@ -311,79 +323,89 @@ class _ControlsRowState extends State<ControlsRow> {
   Widget build(BuildContext context) {
     return IconTheme(
       data: IconThemeData(color: widget.color),
-      child: Row(
-        children: <Widget>[
-          !statusEnumCheck(UpdateStatus.UNKNOWN) &&
-                  !statusEnumCheck(UpdateStatus.DELETED) &&
-                  !statusEnumCheck(UpdateStatus.PAUSED_ERROR)
-              ? Container()
-              : IconButton(
-                  icon: Icon(Icons.file_download),
-                  onPressed: () {
-                    AndroidFlutterUpdater.needsWarn().then((v) {
-                      if (v)
-                        popupMenuBuilder(
-                            context,
-                            AlertDialog(
-                              title: Text("Warning!"),
-                              content: Text(
-                                  "You appear to be on mobile data! Would you like to still continue?"),
-                              actions: <Widget>[
-                                FlatButton(
-                                    child: Text("No"),
-                                    onPressed: () =>
-                                        Navigator.of(context).pop()),
-                                FlatButton(
-                                    child: Text("Yes"),
-                                    onPressed: () {
-                                      AndroidFlutterUpdater.startDownload(
-                                          AppData().updateIds[widget.index]);
-                                      Navigator.of(context).pop();
-                                    }),
-                              ],
-                            ),
-                            dismiss: true);
-                      else
-                        AndroidFlutterUpdater.startDownload(
-                            AppData().updateIds[widget.index]);
-                    });
-                  }),
-          statusEnumCheck(UpdateStatus.DOWNLOADING) ||
-                  statusEnumCheck(UpdateStatus.PAUSED)
-              ? Row(children: <Widget>[
-                  statusEnumCheck(UpdateStatus.PAUSED)
-                      ? IconButton(
-                          icon: Icon(Icons.play_arrow),
-                          onPressed: () => AndroidFlutterUpdater.resumeDownload(
-                              AppData().updateIds[widget.index]))
-                      : IconButton(
-                          icon: Icon(Icons.pause),
-                          onPressed: () => AndroidFlutterUpdater.pauseDownload(
-                              AppData().updateIds[widget.index])),
-                ])
-              : Container(),
-          !statusEnumCheck(UpdateStatus.UNKNOWN) &&
-                  !statusEnumCheck(UpdateStatus.DELETED) &&
-                  !statusEnumCheck(UpdateStatus.INSTALLING)
-              ? IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () => AndroidFlutterUpdater.cancelAndDelete(
-                      AppData().updateIds[widget.index]))
-              : Container(),
-          statusEnumCheck(UpdateStatus.DOWNLOADED)
-              ? IconButton(
-                  onPressed: () => AndroidFlutterUpdater.verifyDownload(
-                      AppData().updateIds[widget.index]),
-                  icon: Icon(Icons.search))
-              : Container(),
-          statusEnumCheck(UpdateStatus.VERIFIED)
-              ? IconButton(
-                  onPressed: () => AndroidFlutterUpdater.installUpdate(
-                      AppData().updateIds[widget.index]),
-                  icon: Icon(Icons.perm_device_information))
-              : Container()
-        ],
-      ),
+      child: FutureBuilder(
+          initialData: "Unknown",
+          future: AndroidFlutterUpdater.getStatus(
+              AppData().updateIds[widget.index]),
+          builder: (context, snapshot) {
+            UpdateStatus status = strToStatusEnum(snapshot.data);
+            return Row(
+              children: <Widget>[
+                status != UpdateStatus.UNKNOWN &&
+                        status != UpdateStatus.DELETED &&
+                        status != UpdateStatus.PAUSED_ERROR
+                    ? Container()
+                    : IconButton(
+                        icon: Icon(Icons.file_download),
+                        onPressed: () {
+                          AndroidFlutterUpdater.needsWarn().then((v) {
+                            if (v)
+                              popupMenuBuilder(
+                                  context,
+                                  AlertDialog(
+                                    title: Text("Warning!"),
+                                    content: Text(
+                                        "You appear to be on mobile data! Would you like to still continue?"),
+                                    actions: <Widget>[
+                                      FlatButton(
+                                          child: Text("No"),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop()),
+                                      FlatButton(
+                                          child: Text("Yes"),
+                                          onPressed: () {
+                                            AndroidFlutterUpdater.startDownload(
+                                                AppData()
+                                                    .updateIds[widget.index]);
+                                            Navigator.of(context).pop();
+                                          }),
+                                    ],
+                                  ),
+                                  dismiss: true);
+                            else
+                              AndroidFlutterUpdater.startDownload(
+                                  AppData().updateIds[widget.index]);
+                          });
+                        }),
+                status == UpdateStatus.DOWNLOADING ||
+                        status == UpdateStatus.PAUSED
+                    ? Row(children: <Widget>[
+                        status == UpdateStatus.PAUSED
+                            ? IconButton(
+                                icon: Icon(Icons.play_arrow),
+                                onPressed: () =>
+                                    AndroidFlutterUpdater.resumeDownload(
+                                        AppData().updateIds[widget.index]))
+                            : IconButton(
+                                icon: Icon(Icons.pause),
+                                onPressed: () =>
+                                    AndroidFlutterUpdater.pauseDownload(
+                                        AppData().updateIds[widget.index])),
+                      ])
+                    : Container(),
+                status != UpdateStatus.UNKNOWN &&
+                        status != UpdateStatus.DELETED &&
+                        status != UpdateStatus.INSTALLING
+                    ? IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () => AndroidFlutterUpdater.cancelAndDelete(
+                            AppData().updateIds[widget.index]))
+                    : Container(),
+                status == UpdateStatus.DOWNLOADED
+                    ? IconButton(
+                        onPressed: () => AndroidFlutterUpdater.verifyDownload(
+                            AppData().updateIds[widget.index]),
+                        icon: Icon(Icons.search))
+                    : Container(),
+                status == UpdateStatus.VERIFIED
+                    ? IconButton(
+                        onPressed: () => AndroidFlutterUpdater.installUpdate(
+                            AppData().updateIds[widget.index]),
+                        icon: Icon(Icons.perm_device_information))
+                    : Container()
+              ],
+            );
+          }),
     );
   }
 }

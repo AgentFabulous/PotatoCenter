@@ -48,15 +48,42 @@ bool statusEnumCheck(UpdateStatus u) {
   return strToStatusEnum(AppData().nativeData['update_status']) == u;
 }
 
-int totalSizeInMb() {
-  return int.parse(AppData().nativeData['size']) ~/ (1024 * 1024);
+int totalSizeInMb({String sizeStr}) {
+  sizeStr ??= AppData().nativeData['size'];
+  return int.parse(sizeStr) ~/ (1024 * 1024);
 }
 
-int totalCompletedInMb() {
-  return ((int.parse(AppData().nativeData['size']) ~/ (1024 * 1024)) *
-          (int.parse(filterPercentage(AppData().nativeData['percentage'])) /
-              100))
+int totalCompletedInMb({String sizeStr, String percentageStr}) {
+  sizeStr ??= AppData().nativeData['size'];
+  percentageStr ??= AppData().nativeData['percentage'];
+  return ((int.parse(sizeStr) ~/ (1024 * 1024)) *
+          (int.parse(filterPercentage(percentageStr)) / 100))
       .toInt();
+}
+
+Future<bool> activeLayout(String id) async {
+  bool ret = false;
+  int persistStatus = await AndroidFlutterUpdater.getPersistentStatus(id);
+  switch (persistStatus) {
+    case Persistent.UNKNOWN:
+      ret = strToStatusEnum(await AndroidFlutterUpdater.getStatus(id)) ==
+          UpdateStatus.STARTING;
+      break;
+    case Persistent.VERIFIED:
+      ret = strToStatusEnum(await AndroidFlutterUpdater.getStatus(id)) ==
+          UpdateStatus.INSTALLING;
+      break;
+    case Persistent.INCOMPLETE:
+      ret = true;
+      break;
+    default:
+      throw new Exception("Bad Persistent Status: $persistStatus");
+  }
+  return ret;
+}
+
+Future<String> getDownloadStatusLine(String id) async {
+  return "${await AndroidFlutterUpdater.getEta(id)} (${totalCompletedInMb(percentageStr: (await AndroidFlutterUpdater.getDownloadProgress(id)).toString())}MB of ${totalSizeInMb(sizeStr: await AndroidFlutterUpdater.getSize(id))}MB)";
 }
 
 void launchUrl(String url) async {
