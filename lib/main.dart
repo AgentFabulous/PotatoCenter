@@ -254,35 +254,46 @@ class _MyAppState extends State<MyApp> {
         appBar: null,
         body: Stack(
           children: <Widget>[
-            Positioned(
-              top: 75.0 * AppData().scaleFactorH,
-              left: 20.0 * AppData().scaleFactorW,
-              child: GestureDetector(
-                onLongPress: () => setState(() => roundBoi = !roundBoi),
-                child: new AnimatedOpacity(
-                  duration: Duration(milliseconds: 300),
-                  opacity:
-                      strToBool(AppData().nativeData['update_available']) ||
-                              (AppData().updateIds != null &&
-                                  AppData().updateIds.length > 0)
-                          ? 1.0
-                          : 0.05,
-                  child: new ClipPath(
-                      child: Text(
-                          strToBool(AppData().nativeData['update_available']) ||
-                                  (AppData().updateIds != null &&
-                                      AppData().updateIds.length > 0)
-                              ? "Update\navailable!"
-                              : "Up to date.",
-                          style: TextStyle(
-                              fontSize: AppData().scaleFactorH * 70.0,
-                              color: strToBool(AppData()
-                                          .nativeData['update_available']) ||
-                                      (AppData().updateIds != null &&
-                                          AppData().updateIds.length > 0)
-                                  ? Theme.of(context).accentColor
-                                  : Theme.of(context).textTheme.title.color))),
-                ),
+            Positioned.fill(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: 20.0 * AppData().scaleFactorW,
+                        top: 75 * AppData().scaleFactorH),
+                    child: GestureDetector(
+                      onLongPress: () => setState(() => roundBoi = !roundBoi),
+                      child: AnimatedOpacity(
+                        duration: Duration(milliseconds: 300),
+                        opacity: strToBool(
+                                    AppData().nativeData['update_available']) ||
+                                (AppData().updateIds != null &&
+                                    AppData().updateIds.length > 0)
+                            ? 1.0
+                            : 0.05,
+                        child: Text(
+                            strToBool(AppData()
+                                        .nativeData['update_available']) ||
+                                    (AppData().updateIds != null &&
+                                        AppData().updateIds.length > 0)
+                                ? "Update\navailable!"
+                                : "Up to date.",
+                            style: TextStyle(
+                                fontSize: AppData().scaleFactorH * 70.0,
+                                color: strToBool(AppData()
+                                            .nativeData['update_available']) ||
+                                        (AppData().updateIds != null &&
+                                            AppData().updateIds.length > 0)
+                                    ? Theme.of(context).accentColor
+                                    : Theme.of(context).textTheme.title.color)),
+                      ),
+                    ),
+                  ),
+                  ScrollConfiguration(
+                      behavior: NoGlowScrollBehavior(),
+                      child: BodyCards(roundBoi: roundBoi))
+                ],
               ),
             ),
             Positioned(
@@ -309,7 +320,7 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
             ),
-            Positioned(
+            /*Positioned(
               bottom: 0,
               top: 0,
               right: 0,
@@ -317,10 +328,10 @@ class _MyAppState extends State<MyApp> {
               child: Align(
                 alignment: Alignment.center,
                 child: ScrollConfiguration(
-                    behavior: NoGlowScrollBehavior(),
-                    child: BodyCards(roundBoi: roundBoi)),
+                          behavior: NoGlowScrollBehavior(),
+                          child: BodyCards(roundBoi: roundBoi)),
               ),
-            )
+            )*/
           ],
         ));
   }
@@ -363,96 +374,68 @@ class _BodyCardsState extends State<BodyCards> {
 
   @override
   Widget build(BuildContext _context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-            padding:
-                EdgeInsets.symmetric(horizontal: 8.0 * AppData().scaleFactorW),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(15.0 * AppData().scaleFactorA),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(15.0 * AppData().scaleFactorH),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      "Current build",
-                      style: heading.copyWith(
-                          color: Theme.of(context).accentColor),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        FutureBuilder(
-                            initialData: "0.0",
-                            future: AndroidFlutterUpdater.getBuildVersion(),
-                            builder: (context, snapshot) =>
-                                Text("v${snapshot.data}")),
-                        FutureBuilder(
-                            initialData: "...",
-                            future:
-                                AndroidFlutterUpdater.getProp("ro.potato.dish"),
-                            builder: (context, snapshot) =>
-                                Text(" - ${snapshot.data}")),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        FutureBuilder(
-                            initialData: "...",
-                            future: AndroidFlutterUpdater.getModel(),
-                            builder: (context, snapshot) =>
-                                Text("${snapshot.data}")),
-                        FutureBuilder(
-                            initialData: "...",
-                            future: AndroidFlutterUpdater.getDeviceName(),
-                            builder: (context, snapshot) =>
-                                Text(" - (${snapshot.data})")),
-                      ],
-                    ),
-                    FutureBuilder(
-                        initialData: "...",
-                        future: AndroidFlutterUpdater.getBuildDate(),
-                        builder: (context, snapshot) =>
-                            Text("${snapshot.data}")),
-                  ],
-                ),
-              ),
-            )),
-        MediaQuery.removePadding(
-          removeTop: true,
+    return Expanded(
+      child: Center(
+        child: MediaQuery.removePadding(
           context: context,
-          child: FutureBuilder(
-            initialData: PermissionStatus.authorized,
-            future: SimplePermissions.getPermissionStatus(
-                Permission.WriteExternalStorage),
-            builder: (context, snapshot) =>
-                (snapshot.data as PermissionStatus) !=
-                        PermissionStatus.authorized
-                    ? StoragePermCard(
-                        textStyle: heading,
-                        setStateCb: () => setState(() {}),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: AppData().updateIds == null
-                            ? 0
-                            : AppData().updateIds.length,
-                        itemBuilder: (context, index) {
-                          return UpdateCard(
-                            contents: CardContents(
-                                index: index,
-                                heading: heading,
-                                roundBoi: widget.roundBoi),
-                          );
-                        }),
+          removeTop: true,
+          child: ListView(
+            shrinkWrap: true,
+            children: <Widget>[
+              DeviceInfoCard(textStyle: heading),
+              FutureBuilder(
+                  initialData: PermissionStatus.authorized,
+                  future: SimplePermissions.getPermissionStatus(
+                      Permission.WriteExternalStorage),
+                  builder: (context, snapshot) => (snapshot.data
+                              as PermissionStatus) !=
+                          PermissionStatus.authorized
+                      ? StoragePermCard(
+                          textStyle: heading,
+                          setStateCb: () => setState(() {}),
+                        )
+                      : MediaQuery.removePadding(
+                          removeTop: true,
+                          context: context,
+                          child: AppData().updateIds == null ||
+                                  AppData().updateIds.length == 0
+                              ? Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 10.0 * AppData().scaleFactorH),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Opacity(
+                                          opacity: 0.5,
+                                          child: Text("No updates here",
+                                              style: TextStyle(
+                                                  fontSize: 20.0 *
+                                                      AppData().scaleFactorH))),
+                                      Text(" 🤷🏻‍♀️",
+                                          style: TextStyle(
+                                              fontSize: 20.0 *
+                                                  AppData().scaleFactorH)),
+                                    ],
+                                  ))
+                              : ListView.builder(
+                                  physics: ClampingScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: AppData().updateIds.length,
+                                  itemBuilder: (context, index) {
+                                    return UpdateCard(
+                                      contents: CardContents(
+                                          index: index,
+                                          heading: heading,
+                                          roundBoi: widget.roundBoi),
+                                    );
+                                  }))),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 40.0),
+              )
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

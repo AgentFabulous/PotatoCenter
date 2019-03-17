@@ -6,6 +6,73 @@ import 'package:potato_center/ui/common.dart';
 import 'package:potato_center/ui/customprogressbar.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 
+class DeviceInfoCard extends StatefulWidget {
+  final TextStyle textStyle;
+
+  DeviceInfoCard({this.textStyle});
+
+  @override
+  _DeviceInfoCardState createState() => _DeviceInfoCardState();
+}
+
+class _DeviceInfoCardState extends State<DeviceInfoCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.0 * AppData().scaleFactorW),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0 * AppData().scaleFactorA),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(15.0 * AppData().scaleFactorH),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  "Current build",
+                  style: widget.textStyle
+                      .copyWith(color: Theme.of(context).accentColor),
+                ),
+                Row(
+                  children: <Widget>[
+                    FutureBuilder(
+                        initialData: "0.0",
+                        future: AndroidFlutterUpdater.getBuildVersion(),
+                        builder: (context, snapshot) =>
+                            Text("v${snapshot.data}")),
+                    FutureBuilder(
+                        initialData: "...",
+                        future: AndroidFlutterUpdater.getProp("ro.potato.dish"),
+                        builder: (context, snapshot) =>
+                            Text(" - ${snapshot.data}")),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    FutureBuilder(
+                        initialData: "...",
+                        future: AndroidFlutterUpdater.getModel(),
+                        builder: (context, snapshot) =>
+                            Text("${snapshot.data}")),
+                    FutureBuilder(
+                        initialData: "...",
+                        future: AndroidFlutterUpdater.getDeviceName(),
+                        builder: (context, snapshot) =>
+                            Text(" - (${snapshot.data})")),
+                  ],
+                ),
+                FutureBuilder(
+                    initialData: "...",
+                    future: AndroidFlutterUpdater.getBuildDate(),
+                    builder: (context, snapshot) => Text("${snapshot.data}")),
+              ],
+            ),
+          ),
+        ));
+  }
+}
+
 class StoragePermCard extends StatefulWidget {
   final TextStyle textStyle;
   final VoidCallback setStateCb;
@@ -109,11 +176,14 @@ class _CardContentsState extends State<CardContents> {
                         AppData().updateIds[widget.index]),
                     initialData: "Loading",
                     builder: (context, text) {
-                      return Text(text.data);
+                      return Text(
+                        text.data,
+                        style: TextStyle(color: widget.heading.color),
+                      );
                     }),
               ],
             ),
-            ControlsRow(index: widget.index)
+            ControlsRow(index: widget.index, color: widget.heading.color)
           ],
         ),
         ProgressWidget(roundBoi: widget.roundBoi)
@@ -210,9 +280,10 @@ class _ProgressWidgetState extends State<ProgressWidget> {
 
 class ControlsRow extends StatefulWidget {
   final int index;
+  final Color color;
   final Key key = GlobalKey<_ControlsRowState>();
 
-  ControlsRow({@required this.index});
+  ControlsRow({@required this.index, @required this.color});
 
   @override
   _ControlsRowState createState() => _ControlsRowState();
@@ -238,77 +309,81 @@ class _ControlsRowState extends State<ControlsRow> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        !statusEnumCheck(UpdateStatus.UNKNOWN) &&
-                !statusEnumCheck(UpdateStatus.DELETED) &&
-                !statusEnumCheck(UpdateStatus.PAUSED_ERROR)
-            ? Container()
-            : IconButton(
-                icon: Icon(Icons.file_download),
-                onPressed: () {
-                  AndroidFlutterUpdater.needsWarn().then((v) {
-                    if (v)
-                      popupMenuBuilder(
-                          context,
-                          AlertDialog(
-                            title: Text("Warning!"),
-                            content: Text(
-                                "You appear to be on mobile data! Would you like to still continue?"),
-                            actions: <Widget>[
-                              FlatButton(
-                                  child: Text("No"),
-                                  onPressed: () => Navigator.of(context).pop()),
-                              FlatButton(
-                                  child: Text("Yes"),
-                                  onPressed: () {
-                                    AndroidFlutterUpdater.startDownload(
-                                        AppData().updateIds[widget.index]);
-                                    Navigator.of(context).pop();
-                                  }),
-                            ],
-                          ),
-                          dismiss: true);
-                    else
-                      AndroidFlutterUpdater.startDownload(
-                          AppData().updateIds[widget.index]);
-                  });
-                }),
-        statusEnumCheck(UpdateStatus.DOWNLOADING) ||
-                statusEnumCheck(UpdateStatus.PAUSED)
-            ? Row(children: <Widget>[
-                statusEnumCheck(UpdateStatus.PAUSED)
-                    ? IconButton(
-                        icon: Icon(Icons.play_arrow),
-                        onPressed: () => AndroidFlutterUpdater.resumeDownload(
-                            AppData().updateIds[widget.index]))
-                    : IconButton(
-                        icon: Icon(Icons.pause),
-                        onPressed: () => AndroidFlutterUpdater.pauseDownload(
-                            AppData().updateIds[widget.index])),
-              ])
-            : Container(),
-        !statusEnumCheck(UpdateStatus.UNKNOWN) &&
-                !statusEnumCheck(UpdateStatus.DELETED) &&
-                !statusEnumCheck(UpdateStatus.INSTALLING)
-            ? IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () => AndroidFlutterUpdater.cancelAndDelete(
-                    AppData().updateIds[widget.index]))
-            : Container(),
-        statusEnumCheck(UpdateStatus.DOWNLOADED)
-            ? IconButton(
-                onPressed: () => AndroidFlutterUpdater.verifyDownload(
-                    AppData().updateIds[widget.index]),
-                icon: Icon(Icons.search))
-            : Container(),
-        statusEnumCheck(UpdateStatus.VERIFIED)
-            ? IconButton(
-                onPressed: () => AndroidFlutterUpdater.installUpdate(
-                    AppData().updateIds[widget.index]),
-                icon: Icon(Icons.perm_device_information))
-            : Container()
-      ],
+    return IconTheme(
+      data: IconThemeData(color: widget.color),
+      child: Row(
+        children: <Widget>[
+          !statusEnumCheck(UpdateStatus.UNKNOWN) &&
+                  !statusEnumCheck(UpdateStatus.DELETED) &&
+                  !statusEnumCheck(UpdateStatus.PAUSED_ERROR)
+              ? Container()
+              : IconButton(
+                  icon: Icon(Icons.file_download),
+                  onPressed: () {
+                    AndroidFlutterUpdater.needsWarn().then((v) {
+                      if (v)
+                        popupMenuBuilder(
+                            context,
+                            AlertDialog(
+                              title: Text("Warning!"),
+                              content: Text(
+                                  "You appear to be on mobile data! Would you like to still continue?"),
+                              actions: <Widget>[
+                                FlatButton(
+                                    child: Text("No"),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop()),
+                                FlatButton(
+                                    child: Text("Yes"),
+                                    onPressed: () {
+                                      AndroidFlutterUpdater.startDownload(
+                                          AppData().updateIds[widget.index]);
+                                      Navigator.of(context).pop();
+                                    }),
+                              ],
+                            ),
+                            dismiss: true);
+                      else
+                        AndroidFlutterUpdater.startDownload(
+                            AppData().updateIds[widget.index]);
+                    });
+                  }),
+          statusEnumCheck(UpdateStatus.DOWNLOADING) ||
+                  statusEnumCheck(UpdateStatus.PAUSED)
+              ? Row(children: <Widget>[
+                  statusEnumCheck(UpdateStatus.PAUSED)
+                      ? IconButton(
+                          icon: Icon(Icons.play_arrow),
+                          onPressed: () => AndroidFlutterUpdater.resumeDownload(
+                              AppData().updateIds[widget.index]))
+                      : IconButton(
+                          icon: Icon(Icons.pause),
+                          onPressed: () => AndroidFlutterUpdater.pauseDownload(
+                              AppData().updateIds[widget.index])),
+                ])
+              : Container(),
+          !statusEnumCheck(UpdateStatus.UNKNOWN) &&
+                  !statusEnumCheck(UpdateStatus.DELETED) &&
+                  !statusEnumCheck(UpdateStatus.INSTALLING)
+              ? IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => AndroidFlutterUpdater.cancelAndDelete(
+                      AppData().updateIds[widget.index]))
+              : Container(),
+          statusEnumCheck(UpdateStatus.DOWNLOADED)
+              ? IconButton(
+                  onPressed: () => AndroidFlutterUpdater.verifyDownload(
+                      AppData().updateIds[widget.index]),
+                  icon: Icon(Icons.search))
+              : Container(),
+          statusEnumCheck(UpdateStatus.VERIFIED)
+              ? IconButton(
+                  onPressed: () => AndroidFlutterUpdater.installUpdate(
+                      AppData().updateIds[widget.index]),
+                  icon: Icon(Icons.perm_device_information))
+              : Container()
+        ],
+      ),
     );
   }
 }
