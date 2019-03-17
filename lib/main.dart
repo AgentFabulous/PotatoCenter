@@ -266,25 +266,18 @@ class _MyAppState extends State<MyApp> {
                       onLongPress: () => setState(() => roundBoi = !roundBoi),
                       child: AnimatedOpacity(
                         duration: Duration(milliseconds: 300),
-                        opacity: strToBool(
-                                    AppData().nativeData['update_available']) ||
-                                (AppData().updateIds != null &&
-                                    AppData().updateIds.length > 0)
-                            ? 1.0
-                            : 0.05,
+                        opacity:
+                            strToBool(AppData().nativeData['update_available'])
+                                ? 1.0
+                                : 0.05,
                         child: Text(
-                            strToBool(AppData()
-                                        .nativeData['update_available']) ||
-                                    (AppData().updateIds != null &&
-                                        AppData().updateIds.length > 0)
+                            strToBool(AppData().nativeData['update_available'])
                                 ? "Update\navailable!"
                                 : "Up to date.",
                             style: TextStyle(
                                 fontSize: AppData().scaleFactorH * 70.0,
                                 color: strToBool(AppData()
-                                            .nativeData['update_available']) ||
-                                        (AppData().updateIds != null &&
-                                            AppData().updateIds.length > 0)
+                                        .nativeData['update_available'])
                                     ? Theme.of(context).accentColor
                                     : Theme.of(context).textTheme.title.color)),
                       ),
@@ -392,7 +385,7 @@ class _BodyCardsState extends State<BodyCards> {
                           PermissionStatus.authorized
                       ? StoragePermCard(
                           textStyle: heading,
-                          setStateCb: () => setState(() {}),
+                          setStateCb: () => mounted ? setState(() {}) : {},
                         )
                       : MediaQuery.removePadding(
                           removeTop: true,
