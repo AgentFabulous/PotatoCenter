@@ -13,7 +13,7 @@ dependencies:
   flutter_svg: any
   android_flutter_updater:
     git:
-      url: git://github.com/AgentFabulous/android_flutter_updater
+      url: https://github.com/AgentFabulous/android_flutter_updater
   simple_permissions: any
   http: any
   material_design_icons_flutter: 3.1.3493
