@@ -10,14 +10,13 @@ import 'package:potato_center/ui/custom_bottom_sheet.dart';
 import 'package:potato_center/ui/custom_icons.dart';
 import 'package:potato_center/ui/no_glow_scroll_behavior.dart';
 import 'package:provider/provider.dart';
+import 'package:simple_permissions/simple_permissions.dart';
 
 import 'provider/current_build.dart';
 
 BorderRadius _kBorderRadius = BorderRadius.circular(12);
 
-void main() {
-  runApp(PotatoCenterRoot());
-}
+void main() => runApp(PotatoCenterRoot());
 
 class PotatoCenterRoot extends StatelessWidget {
   @override
@@ -38,17 +37,20 @@ class PotatoCenterRoot extends StatelessWidget {
         ),
       ],
       child: Builder(
-        builder: (context) => MaterialApp(
-          builder: (context, child) => ScrollConfiguration(
-            behavior: NoGlowScrollBehavior(),
-            child: child,
-          ),
-          debugShowCheckedModeBanner: false,
-          theme: Provider.of<AppInfoProvider>(context).isDark
-              ? ThemeData.dark().copyWith(accentColor: Colors.blue)
-              : ThemeData.light().copyWith(accentColor: Colors.blue),
-          home: HomeScreen(),
-        ),
+        builder: (context) {
+          final appInfo = Provider.of<AppInfoProvider>(context);
+          return MaterialApp(
+            builder: (context, child) => ScrollConfiguration(
+              behavior: NoGlowScrollBehavior(),
+              child: child,
+            ),
+            debugShowCheckedModeBanner: false,
+            theme: appInfo.isDark
+                ? ThemeData.dark().copyWith(accentColor: appInfo.accentColor)
+                : ThemeData.light().copyWith(accentColor: appInfo.accentColor),
+            home: HomeScreen(),
+          );
+        },
       ),
     );
   }
@@ -297,10 +299,8 @@ class HomeScreen extends StatelessWidget {
                           Text(
                               '• Version - ${download.version} (${download.releaseType})'),
                           Text('• Date - ${download.timestamp}'),
-                          download.status != UpdateStatus.UNKNOWN
-                              ? Text(
-                                  '• Status - ${formatStatus(download.status.toString())}')
-                              : Container(),
+                          Text(
+                              '• Status - ${download.status == UpdateStatus.UNKNOWN ? 'Available' : formatStatus(download.status.toString())}'),
                         ],
                       ),
                     ),
@@ -326,6 +326,7 @@ class HomeScreen extends StatelessWidget {
                   .toColor();
           double iconSize = 20;
 
+          final appInfo = Provider.of<AppInfoProvider>(context);
           return IconTheme(
             data: Theme.of(context)
                 .iconTheme
@@ -434,9 +435,22 @@ class HomeScreen extends StatelessWidget {
                   child: GestureDetector(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Icon(Icons.file_download),
+                      child: Icon(
+                        appInfo.storageStatus == PermissionStatus.authorized
+                            ? Icons.file_download
+                            : Icons.warning,
+                      ),
                     ),
                     onTap: () async {
+                      if (appInfo.storageStatus !=
+                          PermissionStatus.authorized) {
+                        appInfo.storageStatus =
+                            await SimplePermissions.requestPermission(
+                          Permission.WriteExternalStorage,
+                        );
+                        if (appInfo.storageStatus !=
+                            PermissionStatus.authorized) return;
+                      }
                       final buttonTextColor =
                           HSLColor.fromColor(Theme.of(context).accentColor)
                               .withLightness(0.4)
@@ -465,7 +479,10 @@ class HomeScreen extends StatelessWidget {
                                       "Yes",
                                       style: TextStyle(color: buttonTextColor),
                                     ),
-                                    onPressed: () => download.startDownload(),
+                                    onPressed: () {
+                                      download.startDownload();
+                                      Navigator.of(context).pop();
+                                    },
                                   ),
                                 ],
                               ),

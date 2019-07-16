@@ -312,8 +312,14 @@ class _DeveloperBottomSheetContentsState
   }
 }
 
-class ChannelSelector extends StatelessWidget {
+class ChannelSelector extends StatefulWidget {
+  @override
+  _ChannelSelectorState createState() => _ChannelSelectorState();
+}
+
+class _ChannelSelectorState extends State<ChannelSelector> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController _controller = TextEditingController();
 
   @override
