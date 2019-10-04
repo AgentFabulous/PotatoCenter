@@ -1,5 +1,6 @@
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:potato_center/internal/methods.dart';
 import 'package:potato_center/models/download.dart';
 import 'package:potato_center/provider/app_info.dart';
@@ -10,7 +11,6 @@ import 'package:potato_center/ui/custom_bottom_sheet.dart';
 import 'package:potato_center/ui/custom_icons.dart';
 import 'package:potato_center/ui/no_glow_scroll_behavior.dart';
 import 'package:provider/provider.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 
 import 'provider/current_build.dart';
 
@@ -436,20 +436,18 @@ class HomeScreen extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(
-                        appInfo.storageStatus == PermissionStatus.authorized
+                        appInfo.storageStatus == PermissionStatus.granted
                             ? Icons.file_download
                             : Icons.warning,
                       ),
                     ),
                     onTap: () async {
-                      if (appInfo.storageStatus !=
-                          PermissionStatus.authorized) {
-                        appInfo.storageStatus =
-                            await SimplePermissions.requestPermission(
-                          Permission.WriteExternalStorage,
-                        );
-                        if (appInfo.storageStatus !=
-                            PermissionStatus.authorized) return;
+                      if (appInfo.storageStatus != PermissionStatus.granted) {
+                        appInfo.storageStatus = (await PermissionHandler()
+                                .requestPermissions([PermissionGroup.storage]))[
+                            PermissionGroup.storage];
+                        if (appInfo.storageStatus != PermissionStatus.granted)
+                          return;
                       }
                       final buttonTextColor =
                           HSLColor.fromColor(Theme.of(context).accentColor)

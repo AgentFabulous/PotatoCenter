@@ -14,7 +14,7 @@ dependencies:
   android_flutter_updater:
     git:
       url: git://github.com/AgentFabulous/android_flutter_updater
-  simple_permissions: any
+  permission_handler: ^3.2.2
   http: any
   material_design_icons_flutter: 3.1.3493
   shared_preferences: ^0.5.1+1

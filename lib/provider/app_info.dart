@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:android_flutter_updater/android_flutter_updater.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:potato_center/internal/methods.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 
 class AppInfoProvider extends ChangeNotifier {
   AppInfoProvider() {
@@ -70,8 +70,7 @@ class AppInfoProvider extends ChangeNotifier {
     isDark = await getDark();
     isDeveloper = await getDeveloperMode();
     accentColor = Color(await AndroidFlutterUpdater.getAccentColor());
-    storageStatus = await SimplePermissions.getPermissionStatus(
-      Permission.WriteExternalStorage,
-    );
+    storageStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.storage);
   }
 }
