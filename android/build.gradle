@@ -6,6 +6,7 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.jween.gradle:android-soexcluder:1.1'
     }
 }
 

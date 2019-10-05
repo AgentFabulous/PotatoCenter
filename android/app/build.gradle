@@ -22,6 +22,7 @@ if (flutterVersionName == null) {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'android-soexcluder'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
@@ -47,10 +48,31 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
         }
+        debug {
+            signingConfig signingConfigs.debug
+        }
     }
-    packagingOptions {
-        exclude 'lib/arm64-v8a/libflutter.so'
-        exclude 'lib/armeabi-v7a/libflutter.so'
+
+
+    flavorDimensions "mode"
+    productFlavors {
+        lite {
+            dimension "mode"
+        }
+        full {
+            dimension "mode"
+        }
+    }
+
+    soexcluder {
+        lite {
+            exclude 'lib/arm64-v8a/*.so'
+            exclude 'lib/armeabi-v7a/*.so'
+        }
+        full {
+            include 'lib/arm64-v8a/*.so'
+            include 'lib/armeabi-v7a/*.so'
+        }
     }
 }
 
