@@ -3,6 +3,9 @@
 A brand new OTA app written in Flutter for updating Android. Written with [
 POSP](https://potatoproject.co/) in mind, it works with the [android_flutter_updater](https://github.com/AgentFabulous/android_flutter_updater) plugin to interact with native components of Android such as [UpdateEngine](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/UpdateEngine.java) to serve a hassle free update experience.
 
+## Deprecated
+The project has moved to the [PotatoProject](https://github.com/PotatoProject) organization. You can find the maintained repository [here](https://github.com/PotatoProject/PotatoCenter).
+
 ## Setting up
 - Open the project in Android Studio.
 - Add your project's framework.jar to android/libs
